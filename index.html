@@ -1,0 +1,130 @@
+# 再度、リアルタイム地震ビューアーのHTMLファイルを生成して保存します。
+
+html_code = """
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>リアルタイム地震ビューアー</title>
+<style>
+  body {
+    margin: 0; background: #000; color: #fff; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  header {
+    background: #111; padding: 1rem; text-align: center; font-size: 1.5rem; color: #0ff;
+  }
+  main {
+    flex: 1; display: flex; flex-direction: column; max-width: 960px; margin: auto; padding: 0.5rem;
+  }
+  section {
+    margin-bottom: 1rem; background: #222; border-radius: 10px; padding: 0.5rem;
+  }
+  iframe {
+    width: 100%; height: 280px; border: none; border-radius: 8px;
+  }
+  #historyList {
+    max-height: 200px; overflow-y: auto; font-size: 0.9rem; line-height: 1.4; padding: 0 0.5rem;
+  }
+  #historyList li {
+    border-bottom: 1px solid #444; padding: 0.3rem 0;
+  }
+  #clock {
+    text-align: center; font-size: 1.3rem; margin: 0.5rem 0; color: #0ff;
+  }
+  #alert-audio {
+    display: none;
+  }
+  #alertToggle {
+    background: #0ff; color: #000; border: none; border-radius: 5px; padding: 0.7rem 1rem;
+    font-weight: bold; cursor: pointer; margin: 0 auto 1rem; display: block; width: 200px;
+  }
+</style>
+</head>
+<body>
+<header>リアルタイム地震ビューアー</header>
+<main>
+  <section>
+    <h2 style="color:#0ff; text-align:center;">リアルタイム地震波形</h2>
+    <iframe src="https://kotoho7.github.io/scratch-realtime-earthquake-viewer-page/" allowfullscreen></iframe>
+  </section>
+  <section>
+    <h2 style="color:#0ff; text-align:center;">強震モニタ 2秒波形</h2>
+    <iframe src="https://eqdata.sakura.ne.jp/kyoshin/2sec_t.html" allowfullscreen></iframe>
+  </section>
+  <section>
+    <h2 style="color:#0ff; text-align:center;">地震履歴（最新10件）</h2>
+    <ul id="historyList"></ul>
+  </section>
+  <button id="alertToggle">警報音 ON/OFF</button>
+  <audio id="alert-audio" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3" />
+  </audio>
+  <div id="clock"></div>
+</main>
+
+<script>
+  // 現在時刻更新
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString();
+    document.getElementById('clock').textContent = timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // 警報音ON/OFF切替
+  const alertAudio = document.getElementById('alert-audio');
+  const alertToggle = document.getElementById('alertToggle');
+  alertToggle.addEventListener('click', () => {
+    if (alertAudio.paused) {
+      alertAudio.play();
+      alertToggle.textContent = '警報音 OFF';
+    } else {
+      alertAudio.pause();
+      alertToggle.textContent = '警報音 ON';
+    }
+  });
+
+  // ページロード時に警報音自動再生（ユーザー操作なしだとブラウザ制限あり）
+  window.addEventListener('load', () => {
+    alertAudio.play().catch(() => {
+      alertToggle.textContent = '警報音 ON (クリックで再生)';
+    });
+  });
+
+  // 簡単な地震履歴擬似データ表示（10件）
+  const historyList = document.getElementById('historyList');
+  const sampleHistory = [
+    { time: '2025-07-02 21:45', region: '関東', magnitude: 'M4.3', depth: '10km' },
+    { time: '2025-07-02 20:12', region: '東北', magnitude: 'M3.7', depth: '15km' },
+    { time: '2025-07-02 19:00', region: '九州', magnitude: 'M5.1', depth: '20km' },
+    { time: '2025-07-02 17:38', region: '北海道', magnitude: 'M4.0', depth: '30km' },
+    { time: '2025-07-02 15:22', region: '関西', magnitude: 'M3.5', depth: '8km' },
+    { time: '2025-07-02 13:00', region: '東海', magnitude: 'M4.7', depth: '12km' },
+    { time: '2025-07-02 11:10', region: '沖縄', magnitude: 'M3.9', depth: '25km' },
+    { time: '2025-07-02 09:45', region: '中国地方', magnitude: 'M4.1', depth: '18km' },
+    { time: '2025-07-02 08:30', region: '四国', magnitude: 'M3.8', depth: '10km' },
+    { time: '2025-07-02 06:15', region: '北陸', magnitude: 'M4.5', depth: '14km' }
+  ];
+
+  function renderHistory() {
+    historyList.innerHTML = '';
+    sampleHistory.forEach(event => {
+      const li = document.createElement('li');
+      li.textContent = `${event.time} - ${event.region} - ${event.magnitude} - 深さ ${event.depth}`;
+      historyList.appendChild(li);
+    });
+  }
+  renderHistory();
+</script>
+</body>
+</html>
+"""
+
+file_path = "/mnt/data/jquake_realtime_viewer.html"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(html_code)
+
+file_path
